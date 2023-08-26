@@ -31,6 +31,7 @@ var (
 	direction   = left
 	refreshRate = time.Millisecond * 300
 	gameOver    = false
+	quitSignal  = make(chan struct{})
 )
 
 func generateFood() {
@@ -102,11 +103,19 @@ func update() {
 	}
 }
 
-func handleInput(quit chan bool) {
+// init() function will be called once automatically.
+func init() {
+	// original: 'for i, _ := range board { ... }'
+	for i := range board {
+		board[i] = make([]bool, width)
+	}
+}
+
+func monitorInput() {
 	for {
 		select {
-		case <- quit:
-			close(quit)
+		case <-quitSignal:
+			close(quitSignal)
 			return
 		default:
 			// 每次退出游戏后 需要再按一次按键才能退出就是因为这个GetKey
@@ -145,14 +154,6 @@ func handleInput(quit chan bool) {
 	}
 }
 
-// init() function will be called once automatically.
-func init() {
-	// original: 'for i, _ := range board { ... }'
-	for i := range board {
-		board[i] = make([]bool, width)
-	}
-}
-
 func main() {
 	if err := keyboard.Open(); err != nil {
 		panic(err)
@@ -165,14 +166,12 @@ func main() {
 		}
 	}()
 
-	quit := make(chan bool)
-	go handleInput(quit)
-
+	go monitorInput()
 	for !gameOver {
 		update()
 		time.Sleep(refreshRate)
 	}
 
-	quit <- true
+	quitSignal <- struct{}{}
 	fmt.Printf("Game Over!\n")
 }
