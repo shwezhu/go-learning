@@ -37,7 +37,7 @@ func createWorkerPool(numOfWorker int) {
 
 // when use channel, you have to figure out if you need to remind of other goroutines,
 // if yes, figure out when to close
-// when use sync.WaitGroup three operations you need to do: wg--, wg.Add(1), wg.wait()
+// when use sync.WaitGroup three operations you need to do: wg--, wg.addSession(1), wg.wait()
 // and don't forget to do wg--, otherwise the wg.wait() will never return
 func main() {
 	// 1. keep listening the resultChannel until resultsChannel is closed
